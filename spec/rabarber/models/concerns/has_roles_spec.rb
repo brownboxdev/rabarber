@@ -14,19 +14,8 @@ RSpec.describe Rabarber::HasRoles do
     it "raises an error when the given roles are invalid" do
       expect { subject }.to raise_error(
         Rabarber::InvalidArgumentError,
-        "Role names must be Symbols or Strings and may only contain lowercase letters, numbers, and underscores"
+        "Expected an array of symbols or strings containing only lowercase letters, numbers, and underscores, got [:Admin, \"junior developer\"]"
       )
-    end
-  end
-
-  shared_examples_for "role names are processed" do
-    let(:roles) { [:admin, :manager] }
-
-    it "uses Input::Roles to process the given roles" do
-      input_processor = instance_double(Rabarber::Input::Roles, process: roles)
-      allow(Rabarber::Input::Roles).to receive(:new).with(roles).and_return(input_processor)
-      expect(input_processor).to receive(:process)
-      subject
     end
   end
 
@@ -94,7 +83,7 @@ RSpec.describe Rabarber::HasRoles do
 
     let(:user) { User.create! }
 
-    shared_examples_for "it caches all user roles" do |all_roles|
+    shared_examples_for "it caches all user roles" do
       it "caches user roles" do
         expect(Rabarber::Core::Cache).to receive(:fetch).with([user.id, :all]) do |&block|
           result = block.call
@@ -108,7 +97,9 @@ RSpec.describe Rabarber::HasRoles do
     context "when the user has no roles" do
       it { is_expected.to eq({}) }
 
-      it_behaves_like "it caches all user roles", {}
+      it_behaves_like "it caches all user roles" do
+        let(:all_roles) { {} }
+      end
     end
 
     context "when the user has some roles" do
@@ -122,14 +113,18 @@ RSpec.describe Rabarber::HasRoles do
 
       it { is_expected.to eq(nil => [:admin, :manager], User => [:viewer], project => [:manager]) }
 
-      it_behaves_like("it caches all user roles", { nil => [:admin, :manager], User => [:viewer], Project.take => [:manager] })
+      it_behaves_like "it caches all user roles" do
+        let(:all_roles) { { nil => [:admin, :manager], User => [:viewer], project => [:manager] } }
+      end
 
       context "when the instance context can't be found" do
         before { project.destroy! }
 
         it { is_expected.to eq(nil => [:admin, :manager], User => [:viewer]) }
 
-        it_behaves_like "it caches all user roles", { nil => [:admin, :manager], User => [:viewer] }
+        it_behaves_like "it caches all user roles" do
+          let(:all_roles) { { nil => [:admin, :manager], User => [:viewer] } }
+        end
       end
 
       context "when the class context doesn't exist" do
@@ -159,7 +154,6 @@ RSpec.describe Rabarber::HasRoles do
     before { user.assign_roles(:admin, :manager) }
 
     it_behaves_like "role names are validated"
-    it_behaves_like "role names are processed"
 
     context "when the user has at least one of the given roles" do
       let(:roles) { [:admin, :accountant] }
@@ -210,7 +204,6 @@ RSpec.describe Rabarber::HasRoles do
       let(:context) { Project }
 
       it_behaves_like "role names are validated"
-      it_behaves_like "role names are processed"
 
       context "when the given roles exist" do
         before do
@@ -298,7 +291,6 @@ RSpec.describe Rabarber::HasRoles do
       let(:context) { nil }
 
       it_behaves_like "role names are validated"
-      it_behaves_like "role names are processed"
 
       context "when the given roles exist" do
         let(:context) { Project }
@@ -394,7 +386,6 @@ RSpec.describe Rabarber::HasRoles do
     let(:context) { nil }
 
     it_behaves_like "role names are validated"
-    it_behaves_like "role names are processed"
 
     context "when the user has the given roles" do
       let(:context) { Project }
