@@ -218,7 +218,7 @@ class TicketsController < ApplicationController
 end
 ```
 
-Authorization rules are additive - they combine across inheritance chains and when defined multiple times for the same action or controller:
+Authorization rules are additive - rules defined multiple times combine, and controller-wide rules are inherited by subclasses:
 
 ```rb
 class BaseController < ApplicationController
