@@ -1,3 +1,9 @@
+## v6.0.1
+
+### Bugs:
+
+- Fixed role management methods raising when the configured user model is not named `User`
+
 ## v6.0.0
 
 ### Breaking:
