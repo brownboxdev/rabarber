@@ -28,6 +28,11 @@ module Rabarber
 
         user_model = Rabarber::Configuration.user_model
         user_model.include Rabarber::Roleable unless user_model < Rabarber::Roleable
+
+        Rabarber::Role.send(:remove_const, :HABTM_Roleables) if Rabarber::Role.const_defined?(:HABTM_Roleables, false)
+        Rabarber::Role.has_and_belongs_to_many :roleables, class_name: Rabarber::Configuration.user_model_name,
+                                                           association_foreign_key: "roleable_id",
+                                                           join_table: "rabarber_roles_roleables"
       end
     end
 

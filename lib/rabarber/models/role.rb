@@ -6,10 +6,6 @@ module Rabarber
 
     belongs_to :context, polymorphic: true, optional: true
 
-    has_and_belongs_to_many :roleables, class_name: Rabarber::Configuration.user_model_name,
-                                        association_foreign_key: "roleable_id",
-                                        join_table: "rabarber_roles_roleables"
-
     class << self
       def list(context: nil)
         where(process_context(context)).pluck(:name).map(&:to_sym)

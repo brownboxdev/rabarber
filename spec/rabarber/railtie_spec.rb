@@ -169,6 +169,33 @@ RSpec.describe Rabarber::Railtie do
         end
       end
     end
+
+    describe "roleables association declaration" do
+      let(:server_running) { false }
+      let(:table_exists) { false }
+      let(:user_model) { class_double(Client) }
+
+      before do
+        Rabarber::Configuration.user_model_name = "Client"
+        allow(user_model).to receive(:<).with(Rabarber::Roleable).and_return(true)
+        allow(Rabarber::Configuration).to receive(:user_model).and_return(user_model)
+      end
+
+      after do
+        Rabarber::Configuration.reset_to_defaults!
+        DummyApplication.config.to_prepare_blocks.each(&:call)
+      end
+
+      it "declares the association with the user model configured in the initializer" do
+        subject
+        expect(Rabarber::Role.reflect_on_association(:roleables).klass).to eq(Client)
+      end
+
+      it "re-declares the association on each run without errors or stale classes" do
+        expect { 2.times { DummyApplication.config.to_prepare_blocks.each(&:call) } }.not_to raise_error
+        expect(Rabarber::Role.reflect_on_association(:roleables).klass).to eq(Client)
+      end
+    end
   end
 
   context "extend_migration_helpers initializer" do
