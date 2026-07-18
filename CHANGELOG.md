@@ -2,7 +2,7 @@
 
 ### Bugs:
 
-- Fixed role management methods raising when the configured user model is not named `User`
+- Fixed role management methods raising `NameError` when the configured user model is not named `User`
 
 ## v6.0.0
 
