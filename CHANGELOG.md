@@ -4,6 +4,11 @@
 
 - Fixed role management methods raising `NameError` when the configured user model is not named `User`
 - Fixed a race condition where outdated roles could remain cached after being changed
+- Fixed role creation and renaming raising `ActiveRecord::RecordNotUnique` instead of returning `false` when called concurrently
+
+### Misc:
+
+- `Rabarber.prune` now clears the role cache
 
 ## v6.0.0
 
