@@ -3,6 +3,7 @@
 ### Bugs:
 
 - Fixed role management methods raising `NameError` when the configured user model is not named `User`
+- Fixed a race condition where outdated roles could remain cached after being changed
 
 ## v6.0.0
 
