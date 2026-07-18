@@ -118,6 +118,17 @@ RSpec.describe Rabarber::Role do
       it { is_expected.to be false }
     end
 
+    context "when the role is created concurrently" do
+      let(:context) { Project.create! }
+
+      before do
+        described_class.create!(name: "admin", context_type: "Project", context_id: context.id)
+        allow(described_class).to receive(:exists?).and_return(false)
+      end
+
+      it { is_expected.to be false }
+    end
+
     context "when the role with the same name exists in a different context" do
       let(:context) { Project }
 
@@ -157,6 +168,20 @@ RSpec.describe Rabarber::Role do
     let(:new_name) { :manager }
     let(:context) { Project.create! }
     let(:force) { false }
+
+    context "when the new name is taken concurrently" do
+      before do
+        described_class.create!(name: "admin", context_type: "Project", context_id: context.id)
+        described_class.create!(name: "manager", context_type: "Project", context_id: context.id)
+        allow(described_class).to receive(:exists?).and_return(false)
+      end
+
+      it { is_expected.to be false }
+
+      it "does not rename the role" do
+        expect { subject }.not_to(change { described_class.pluck(:name).sort })
+      end
+    end
 
     shared_examples_for "it does nothing" do |role_exists: true|
       if role_exists
@@ -489,11 +514,21 @@ RSpec.describe Rabarber::Role do
       it "does not delete the roles with existing context" do
         expect { subject }.to change(described_class, :count).from(2).to(1)
       end
+
+      it "clears the cache" do
+        expect(Rabarber::Core::Cache).to receive(:clear)
+        subject
+      end
     end
 
     context "when context is not missing" do
       it "does not delete any roles" do
         expect { subject }.not_to change(described_class, :count)
+      end
+
+      it "does not clear the cache" do
+        expect(Rabarber::Core::Cache).not_to receive(:clear)
+        subject
       end
     end
   end

@@ -64,7 +64,11 @@ module Rabarber
       )
 
       if roles_to_assign.any?
-        rabarber_roles << roles_to_assign
+        begin
+          rabarber_roles << roles_to_assign
+        rescue ActiveRecord::RecordNotUnique
+          rabarber_roles.reset
+        end
         delete_roleable_cache(contexts: [processed_context])
       end
 
@@ -103,7 +107,7 @@ module Rabarber
 
     def create_new_roles(role_names, context:)
       new_roles = role_names - Rabarber.roles(context:)
-      new_roles.each { |role_name| Rabarber::Role.create!(name: role_name, **context) }
+      new_roles.each { |role_name| Rabarber::Role.register(role_name, context:) }
     end
 
     def delete_roleable_cache(contexts:)

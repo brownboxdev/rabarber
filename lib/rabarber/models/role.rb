@@ -28,6 +28,8 @@ module Rabarber
         return false if exists?(name:, **processed_context)
 
         !!create!(name:, **processed_context)
+      rescue ActiveRecord::RecordNotUnique
+        false
       end
 
       def amend(old_name, new_name, context: nil, force: false)
@@ -45,6 +47,8 @@ module Rabarber
         delete_roleables_cache(role.roleables.pluck(:id), context: processed_context)
 
         true
+      rescue ActiveRecord::RecordNotUnique
+        false
       end
 
       def drop(name, context: nil, force: false)
@@ -81,6 +85,8 @@ module Rabarber
           )
           where(id: orphaned_roles).delete_all
         end
+
+        Rabarber::Core::Cache.clear
       end
 
       private
