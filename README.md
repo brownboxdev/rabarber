@@ -459,6 +459,8 @@ Use conditional rendering based on roles:
 <% end %>
 ```
 
+Like authorization, these helpers require an authenticated user. In views that can be rendered for both authenticated and unauthenticated visitors, wrap them in your authentication check.
+
 ## Getting Help and Contributing
 
 ### Getting Help
