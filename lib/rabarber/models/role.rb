@@ -40,9 +40,11 @@ module Rabarber
 
         return false if exists?(name:, **processed_context) || role.roleables.exists? && !force
 
-        delete_roleables_cache(role, context: processed_context)
-
         role.update!(name:)
+
+        delete_roleables_cache(role.roleables.pluck(:id), context: processed_context)
+
+        true
       end
 
       def drop(name, context: nil, force: false)
@@ -53,9 +55,13 @@ module Rabarber
 
         return false if role.roleables.exists? && !force
 
-        delete_roleables_cache(role, context: processed_context)
+        roleable_ids = role.roleables.pluck(:id)
 
-        !!role.destroy!
+        role.destroy!
+
+        delete_roleables_cache(roleable_ids, context: processed_context)
+
+        true
       end
 
       def prune
@@ -79,8 +85,8 @@ module Rabarber
 
       private
 
-      def delete_roleables_cache(role, context:)
-        Rabarber::Core::Cache.delete(*role.roleables.pluck(:id).flat_map { [[_1, context], [_1, :all]] })
+      def delete_roleables_cache(roleable_ids, context:)
+        Rabarber::Core::Cache.delete(*roleable_ids.flat_map { [[_1, context], [_1, :all]] })
       end
 
       def process_role_name(name)

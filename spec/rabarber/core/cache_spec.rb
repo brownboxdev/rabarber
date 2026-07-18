@@ -66,6 +66,17 @@ RSpec.describe Rabarber::Core::Cache do
         expect(described_class.fetch(42, scope)).to be_nil
         expect(described_class.fetch(13, scope)).to be_nil
       end
+
+      context "when called within a transaction" do
+        it "deletes the value cached during the transaction after commit" do
+          ActiveRecord::Base.transaction do
+            subject
+            described_class.fetch(42, scope) { "stale" }
+          end
+
+          expect(described_class.fetch(42, scope)).to be_nil
+        end
+      end
     end
   end
 

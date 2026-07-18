@@ -64,8 +64,8 @@ module Rabarber
       )
 
       if roles_to_assign.any?
-        delete_roleable_cache(contexts: [processed_context])
         rabarber_roles << roles_to_assign
+        delete_roleable_cache(contexts: [processed_context])
       end
 
       roles(context: processed_context)
@@ -80,8 +80,8 @@ module Rabarber
       )
 
       if roles_to_revoke.any?
-        delete_roleable_cache(contexts: [processed_context])
         self.rabarber_roles -= roles_to_revoke
+        delete_roleable_cache(contexts: [processed_context])
       end
 
       roles(context: processed_context)
