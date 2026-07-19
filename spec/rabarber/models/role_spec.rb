@@ -129,6 +129,36 @@ RSpec.describe Rabarber::Role do
       it { is_expected.to be false }
     end
 
+    context "when a global role is created concurrently" do
+      let(:context) { nil }
+
+      before do
+        described_class.create!(name: "admin")
+        allow(described_class).to receive(:exists?).and_return(false)
+      end
+
+      it { is_expected.to be false }
+
+      it "does not create a duplicate role" do
+        expect { subject }.not_to change(described_class, :count)
+      end
+    end
+
+    context "when a class context role is created concurrently" do
+      let(:context) { Project }
+
+      before do
+        described_class.create!(name: "admin", context_type: "Project")
+        allow(described_class).to receive(:exists?).and_return(false)
+      end
+
+      it { is_expected.to be false }
+
+      it "does not create a duplicate role" do
+        expect { subject }.not_to change(described_class, :count)
+      end
+    end
+
     context "when the role with the same name exists in a different context" do
       let(:context) { Project }
 
