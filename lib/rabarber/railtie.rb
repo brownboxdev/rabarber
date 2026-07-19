@@ -26,8 +26,12 @@ module Rabarber
 
         Rabarber::Core::Permissions.reset! unless app.config.eager_load
 
-        user_model = Rabarber::Configuration.user_model
-        user_model.include Rabarber::Roleable unless user_model < Rabarber::Roleable
+        begin
+          user_model = Rabarber::Configuration.user_model
+          user_model.include Rabarber::Roleable unless user_model < Rabarber::Roleable
+        rescue Rabarber::ConfigurationError
+          raise if Rabarber::Railtie.server_running?
+        end
 
         Rabarber::Role.send(:remove_const, :HABTM_Roleables) if Rabarber::Role.const_defined?(:HABTM_Roleables, false)
         Rabarber::Role.has_and_belongs_to_many :roleables, class_name: Rabarber::Configuration.user_model_name,
