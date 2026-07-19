@@ -6,10 +6,6 @@ module Rabarber
 
     belongs_to :context, polymorphic: true, optional: true
 
-    has_and_belongs_to_many :roleables, class_name: Rabarber::Configuration.user_model_name,
-                                        association_foreign_key: "roleable_id",
-                                        join_table: "rabarber_roles_roleables"
-
     class << self
       def list(context: nil)
         where(process_context(context)).pluck(:name).map(&:to_sym)
@@ -32,6 +28,8 @@ module Rabarber
         return false if exists?(name:, **processed_context)
 
         !!create!(name:, **processed_context)
+      rescue ActiveRecord::RecordNotUnique
+        false
       end
 
       def amend(old_name, new_name, context: nil, force: false)
@@ -44,9 +42,13 @@ module Rabarber
 
         return false if exists?(name:, **processed_context) || role.roleables.exists? && !force
 
-        delete_roleables_cache(role, context: processed_context)
-
         role.update!(name:)
+
+        delete_roleables_cache(role.roleables.pluck(:id), context: processed_context)
+
+        true
+      rescue ActiveRecord::RecordNotUnique
+        false
       end
 
       def drop(name, context: nil, force: false)
@@ -57,9 +59,13 @@ module Rabarber
 
         return false if role.roleables.exists? && !force
 
-        delete_roleables_cache(role, context: processed_context)
+        roleable_ids = role.roleables.pluck(:id)
 
-        !!role.destroy!
+        role.destroy!
+
+        delete_roleables_cache(roleable_ids, context: processed_context)
+
+        true
       end
 
       def prune
@@ -79,12 +85,14 @@ module Rabarber
           )
           where(id: orphaned_roles).delete_all
         end
+
+        Rabarber::Core::Cache.clear
       end
 
       private
 
-      def delete_roleables_cache(role, context:)
-        Rabarber::Core::Cache.delete(*role.roleables.pluck(:id).flat_map { [[_1, context], [_1, :all]] })
+      def delete_roleables_cache(roleable_ids, context:)
+        Rabarber::Core::Cache.delete(*roleable_ids.flat_map { [[_1, context], [_1, :all]] })
       end
 
       def process_role_name(name)

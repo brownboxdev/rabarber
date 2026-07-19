@@ -15,9 +15,12 @@ module Rabarber
       end
 
       def delete(*pairs)
-        return unless enabled?
+        return unless enabled? && pairs.any?
 
-        Rails.cache.delete_multi(pairs.map { |roleable_id, scope| prepare_key(roleable_id, scope) }) if pairs.any?
+        keys = pairs.map { |roleable_id, scope| prepare_key(roleable_id, scope) }
+
+        Rails.cache.delete_multi(keys)
+        ActiveRecord.after_all_transactions_commit { Rails.cache.delete_multi(keys) } if ActiveRecord::Base.connection.transaction_open?
       end
 
       def clear

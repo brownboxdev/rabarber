@@ -21,6 +21,11 @@ RSpec.describe Rabarber::RolesGenerator do
 
           add_index :rabarber_roles, [:name, :context_type, :context_id], unique: true
 
+          if connection.supports_partial_index?
+            add_index :rabarber_roles, :name, unique: true, where: "context_type IS NULL AND context_id IS NULL"
+            add_index :rabarber_roles, [:name, :context_type], unique: true, where: "context_type IS NOT NULL AND context_id IS NULL"
+          end
+
           create_table :rabarber_roles_roleables, id: false do |t|
             t.belongs_to :role, null: false, index: true, foreign_key: { to_table: :rabarber_roles }#{", type: :uuid" if args.include?("--uuid")}
             t.belongs_to :roleable, null: false, index: true, foreign_key: { to_table: :my_users }#{", type: :uuid" if args.include?("--uuid")}

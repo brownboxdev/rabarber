@@ -50,7 +50,7 @@ module Rabarber
     def has_role?(*role_names, context: nil)
       processed_context = process_context(context)
       processed_roles = process_role_names(role_names)
-      roles(context: processed_context).any? { |role_name| processed_roles.include?(role_name) }
+      roles(context: processed_context).intersect?(processed_roles)
     end
 
     def assign_roles(*role_names, context: nil, create_new: true)
@@ -64,8 +64,12 @@ module Rabarber
       )
 
       if roles_to_assign.any?
+        begin
+          rabarber_roles << roles_to_assign
+        rescue ActiveRecord::RecordNotUnique
+          rabarber_roles.reset
+        end
         delete_roleable_cache(contexts: [processed_context])
-        rabarber_roles << roles_to_assign
       end
 
       roles(context: processed_context)
@@ -80,8 +84,8 @@ module Rabarber
       )
 
       if roles_to_revoke.any?
-        delete_roleable_cache(contexts: [processed_context])
         self.rabarber_roles -= roles_to_revoke
+        delete_roleable_cache(contexts: [processed_context])
       end
 
       roles(context: processed_context)
@@ -103,7 +107,7 @@ module Rabarber
 
     def create_new_roles(role_names, context:)
       new_roles = role_names - Rabarber.roles(context:)
-      new_roles.each { |role_name| Rabarber::Role.create!(name: role_name, **context) }
+      new_roles.each { |role_name| Rabarber::Role.register(role_name, context:) }
     end
 
     def delete_roleable_cache(contexts:)

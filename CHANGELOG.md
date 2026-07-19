@@ -1,3 +1,25 @@
+## v6.0.1
+
+### Bugs:
+
+- Fixed role management methods raising `NameError` when the configured user model is not named `User`
+- Fixed a race condition where outdated roles could remain cached after being changed
+- Fixed role creation and renaming raising `ActiveRecord::RecordNotUnique` instead of returning `false` when called concurrently
+- Fixed uniqueness of global and class context roles not being enforced at the database level
+
+This release is fully backward compatible: existing applications continue to work as before without any changes. The new indexes only apply to new applications installing Rabarber. To get the same database-level protection in an existing application, run the following optional migration if your database supports partial indexes:
+
+```rb
+add_index :rabarber_roles, :name, unique: true, where: "context_type IS NULL AND context_id IS NULL"
+add_index :rabarber_roles, [:name, :context_type], unique: true, where: "context_type IS NOT NULL AND context_id IS NULL"
+```
+
+On databases without partial index support, such as MySQL, uniqueness of global and class context roles remains, for now, enforced at the application level only.
+
+### Misc:
+
+- `Rabarber.prune` now clears the role cache
+
 ## v6.0.0
 
 ### Breaking:

@@ -12,6 +12,8 @@ ActiveRecord::Schema.define do
     t.datetime "updated_at", null: false
     t.index ["context_type", "context_id"], name: "index_rabarber_roles_on_context"
     t.index ["name", "context_type", "context_id"], name: "index_rabarber_roles_on_name_and_context_type_and_context_id", unique: true
+    t.index ["name"], name: "index_rabarber_roles_on_name", unique: true, where: "context_type IS NULL AND context_id IS NULL"
+    t.index ["name", "context_type"], name: "index_rabarber_roles_on_name_and_context_type", unique: true, where: "context_type IS NOT NULL AND context_id IS NULL"
   end
 
   create_table "rabarber_roles_roleables", id: false, force: :cascade do |t|
