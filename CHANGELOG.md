@@ -1,3 +1,9 @@
+## v6.0.2
+
+### Bugs:
+
+- Fixed Rails commands failing when the configured user model class does not exist yet
+
 ## v6.0.1
 
 ### Bugs:

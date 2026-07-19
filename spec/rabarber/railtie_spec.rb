@@ -170,6 +170,36 @@ RSpec.describe Rabarber::Railtie do
       end
     end
 
+    describe "missing user model handling" do
+      let(:table_exists) { false }
+
+      before { Rabarber::Configuration.user_model_name = "NonExistentModel" }
+
+      after do
+        Rabarber::Configuration.reset_to_defaults!
+        DummyApplication.config.to_prepare_blocks.each(&:call)
+      end
+
+      context "when server is running" do
+        let(:server_running) { true }
+
+        it "raises a configuration error" do
+          expect { subject }.to raise_error(
+            Rabarber::ConfigurationError,
+            "Invalid configuration `user_model_name`, expected an ActiveRecord model name, got \"NonExistentModel\""
+          )
+        end
+      end
+
+      context "when server is not running" do
+        let(:server_running) { false }
+
+        it "skips roleable module inclusion and does not raise an error" do
+          expect { subject }.not_to raise_error
+        end
+      end
+    end
+
     describe "roleables association declaration" do
       let(:server_running) { false }
       let(:table_exists) { false }
