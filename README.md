@@ -1,4 +1,4 @@
-# Rabarber: Simple Role-Based Authorization for Rails
+# Rabarber: Simple Authorization for Rails
 
 [![Gem Version](https://badge.fury.io/rb/rabarber.svg)](http://badge.fury.io/rb/rabarber)
 [![Downloads](https://img.shields.io/gem/dt/rabarber.svg)](https://rubygems.org/gems/rabarber)
@@ -409,7 +409,7 @@ end
 
 When a context object is deleted from your database, its associated roles become orphaned and ignored by Rabarber.
 
-To clean up orphaned roles, use:
+Ideally, the application should be designed so that this doesn't happen: whenever a context object is deleted, its roles are revoked and deleted as part of the same operation. However, if that wasn't done, you can use the following as a fallback:
 
 ```rb
 Rabarber.prune
