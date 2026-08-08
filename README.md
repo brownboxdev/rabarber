@@ -409,7 +409,7 @@ end
 
 When a context object is deleted from your database, its associated roles become orphaned and ignored by Rabarber.
 
-Ideally, the application should be designed so that this doesn't happen: whenever a context object is deleted, its roles are revoked and deleted as part of the same operation. However, if that wasn't done, you can use the following as a fallback:
+Ideally, the application should be designed so that this doesn't happen: whenever a context object is deleted, its roles are revoked and deleted as part of the same operation. However, if that wasn't done, you can clean up the orphaned roles as a fallback:
 
 ```rb
 Rabarber.prune
